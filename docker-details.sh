@@ -2,8 +2,10 @@ DIR=docker-report
 HISTORY_DIR=$DIR"/history"
 INSPECT_DIR=$DIR"/inspect"
 NETWORK_DIR=$DIR"/network"
-mkdir $DIR $HISTORY_DIR $INSPECT_DIR $NETWORK_DIR
+SERVICE_DIR=$DIR"/service"
+mkdir $DIR $HISTORY_DIR $INSPECT_DIR $NETWORK_DIR $SERVICE_DIR
 
+DOCKER_SWARM_STATUS=`docker info|grep -i swarm|awk '{print $2}'`
 
 echo "=====================DOCKER INFO=========================" >> $DIR/docker.info
 docker info >> $DIR/docker.info
@@ -39,11 +41,24 @@ do
 done
 
 # DOCKER NETWORK INSPECT
-echo "=====================DOCKER NETWORK INSPECT============" >> $NETWORK_DIR
 for net in `docker network ls | awk 'NR>1 {print $2}'`
 do
 	echo "========${net}========" >> $NETWORK_DIR/${net}.json
 	echo `docker network inspect ${net}` >> $NETWORK_DIR/${net}.json
 done
+
+# DOCKER SWARM
+if [ $DOCKER_SWARM_STATUS="active" ];
+then
+	# DOCKER SERVICES
+	echo "===================DOCKER SERVICE=====================" >> $DIR/docker.service
+	docker service ls >> $DIR/docker.service
+	# DOCKER SERVICE INSPECT
+	for service in `docker service ls | awk 'NR>1 {print $2}'`
+		do
+		echo "===========${service}===========" >> $SERVICE_DIR/${service}.json
+		echo `docker service inspect ${service}` >> $SERVICE_DIR/${service}.json
+	done
+fi
 
 tar cvzf docker-report.tar.gz docker-report/
