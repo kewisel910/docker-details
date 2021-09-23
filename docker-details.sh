@@ -14,11 +14,14 @@ docker network ls >> $DIR/docker.networks
 docker image ls >> $DIR/docker.images
 
 # DOCKER IMAGE HISTORY and INSPECT
-for image in `docker image ls | awk 'NR>1 {print $1 }'`
+#docker_images=`docker image ls|awk 'NR>1 {print $1 " " $3}'`
+docker_images=$(docker image ls|awk 'NR>1 { print $3 }'|sed --expression='s/\//-/g')
+for image in $docker_images
 do 
-	image_name=`echo $image|sed --expression='s/\//-/g'`
-	docker image history $image >> $HISTORY_DIR/$image_name.history
-	docker inspect $image >> $INSPECT_DIR/$image_name.inspect
+	#image_id=$(echo $images | awk '{print $1}')
+	#image_name=$(echo $images | awk '{print $2}'|sed --expression='s/\//-/g')
+	docker image history $image >> $HISTORY_DIR/${image}.history
+	docker inspect $image >> $INSPECT_DIR/${image}.inspect
 done
 
 # DOCKER PORTS EXPOSED
